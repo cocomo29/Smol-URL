@@ -1,77 +1,87 @@
-# Necessary imports
+# Import the necessary libraries.
 from fastapi import FastAPI, Request, Form, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import random
+import firebase_admin
+from firebase_admin import credentials, firestore
 
-# This is the FastAPI app object, just remember it as a fudamental part of FastAPI.
+# Initialize the FastAPI app.
 app = FastAPI()
 
-# This is the Jinja2 template engine. We use jinka2 to write python code in html files.
+# Initialize the Jinja2 template engine. We use jinja2 to write python code in html files.
 templates = Jinja2Templates(directory="templates")
 
-# This is the path to the file that stores the shortened URLs. | soon wil be replaece with a database
-data = "shortened_urls.txt"
+# Load the Firebase credentials. These credentials are used to authenticate the Firebase.
+cred = credentials.Certificate('/path/to/serviceAccountKey.json') # You can get this file from the Firebase console by going to Project Settings > Service Accounts > Generate New Private Key.
+# Initialize the Firebase Admin and provide the credentials as an argument.
+firebase_admin.initialize_app(cred)
+# Create a database client. db variable now represents the Firestore database.
+db = firestore.client()
 
-# This function loads the shortened URLs from the file `data`.
-def loadShortenedUrls():
-    # Try to open the file `data`.
-    try:
-        with open(data, "r") as f:
-            # Return a dictionary that maps short URLs to their corresponding long URLs.
-            return dict(line.strip().split(",") for line in f)
-    # If the file `data` does not exist, return an empty dictionary.
-    except FileNotFoundError:
-        return {}
-
-# This function saves the shortened URLs to the file `data`.
-def saveShortenedUrls(shortened_urls):
-    # Open the file `data` in write mode.
-    with open(data, "w") as f:
-        # Write the shortened URLs to the file.
-        for short_url, long_url in shortened_urls.items():
-            f.write(f"{short_url},{long_url}\n")
-
-# This is a dictionary that maps short URLs to their corresponding long URLs.
-shortUrls = loadShortenedUrls()
-
-# This function generates a random six-character short URL.
+# Define a function to generate a random short URL.
 def generateShortUrl():
-    # This is a string of all the possible characters that can be used in a short URL.
+    # Create a list of letters and numbers.
     letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-    # Return a random six-character short URL.
+    # Generate a short URL of 6 characters.
     return ''.join(random.choice(letters) for i in range(6))
 
 def customShortUrl():pass # TODO
 
-# This function renders the index.html in templates directory.
+# Define a function to create a temporary object with the short URL and long URL.
+def createTempObject(url):
+    # Generate a short URL and store it in a variable.
+    shortUrl = generateShortUrl()
+    # Create a temporary object. This object will be used to save the short URL and long URL to Firestore.
+    tempObj = {shortUrl: url}
+    # Return the temporary object.
+    return tempObj
+
+# Define a function to save the short URL and long URL to Firestore.
+def saveUrlToFirestore(shortUrl, longUrl):
+    # Create a document reference in Firestore.
+    docRef = db.collection(u'short_urls').document(shortUrl)
+    # Set the document data.
+    docRef.set({'long_url': longUrl})
+
+# Define a function to get the long URL from Firestore.
+def getUrlFromFirestore(shortUrl):
+    # Create a document reference in Firestore.
+    docRef = db.collection(u'short_urls').document(shortUrl)
+    # Get the document data.
+    doc = docRef.get()
+    # If the document exists, return the long URL.
+    if doc.exists:
+        return doc.to_dict()['long_url']
+    # Otherwise, return None.
+    else:
+        return None
+
+# Define the `root` route.
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    # Return the index.html template with the request object as the context.
+    # Return the index.html template.
     return templates.TemplateResponse("index.html", {"request": request})
 
-# This function shortens a long URL and returns a HTML response with the shortened URL.
+# Define the `shorten` route.
 @app.post("/shorten", response_class=HTMLResponse)
 async def shorten(request: Request, url: str = Form(...)):
-    # Generate a random short URL.
-    short_url = generateShortUrl()
+    # Create a temporary object.
+    tempObj = createTempObject(url)
+    # Save the short URL and long URL to Firestore.
+    for shortUrl, longUrl in tempObj.items():
+        saveUrlToFirestore(shortUrl, longUrl)
+    # Return the index template with the short URL.
+    return templates.TemplateResponse("index.html", {"request": request, "short_url": f"/{shortUrl}"})
 
-    # Add the short URL to the dictionary of short URLs.
-    shortUrls[short_url] = url
-
-    # Save the dictionary of short URLs to the file `data`.
-    saveShortenedUrls(shortUrls)
-
-    # Return the index.html template with the short URL as the context.
-    return templates.TemplateResponse("index.html", {"request": request, "short_url": f"/{short_url}"})
-
-# This function redirects the request to the long URL associated with the short URL.
-@app.get("/{short_url}", response_class=RedirectResponse)
-async def redirect_to_url(request: Request, short_url: str):
-    # If the short URL is not in the dictionary of short URLs, return an error message.
-    if short_url not in shortUrls:
-        return templates.TemplateResponse("index.html", {"request": request, "error_message": "The URL you requested does not exist."})
-
-    # Redirect the request to the long URL associated with the short URL.
-    return RedirectResponse(url=shortUrls[short_url])
+# Define the `redirectToUrl` route.
+@app.get("/{shortUrl}", response_class=RedirectResponse)
+async def redirectToUrl(request: Request, shortUrl: str):
+    # Get the long URL from Firestore.
+    longUrl = getUrlFromFirestore(shortUrl)
+    # If the long URL is None, return an error message.
+    if longUrl is None:
+        return templates.TemplateResponse("index.html", {"request": request, "error_message": "Short URL not found."})
+    # Otherwise, redirect to the long URL.
+    else:
+        return RedirectResponse(url=longUrl)
