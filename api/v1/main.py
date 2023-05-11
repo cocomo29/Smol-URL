@@ -2,10 +2,16 @@ from fastapi import FastAPI, Request, Form, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from Shortner.main import createTempObject
 from .firebase.db import saveUrlToFirestore, getUrlFromFirestore
-from typing import Dict
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 # Define the `root` route.
 @app.get("/")
 def root():

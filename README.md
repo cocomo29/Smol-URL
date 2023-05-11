@@ -1,4 +1,14 @@
 # Smol-URL
+temporarily hosted [here.](https://untimelyfickleruby.haroonabbasi3.repl.co)
+
+# Installation
+```bash
+git clone {url}
+```
+```bash
+pip install -r requirements.txt
+```
+
 # API Usage
 ```bash
 uvicorn api.v1.main::app --reload
@@ -14,8 +24,7 @@ npm i
 ```bash
 npm run dev
 ```
-temporarily hosted [here.](https://untimelyfickleruby.haroonabbasi3.repl.co)
-
+# TODO
 - [x] working prototype
 - [ ] custom short url
 - [ ] fronted
