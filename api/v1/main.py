@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Form, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
-from ...Shortner.main import *
-from .db.firebase.db import *
+from Shortner.main import createTempObject
+from api.v1.db.firebase.db import saveUrlToFirestore, getUrlFromFirestore
 
 app = FastAPI()
 

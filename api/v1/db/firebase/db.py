@@ -6,7 +6,7 @@ from firebase_admin import credentials, firestore
 # Initialize the Jinja2 template engine. We use jinja2 to write python code in html files.
 
 # Load the Firebase credentials. These credentials are used to authenticate the Firebase.
-cred = credentials.Certificate('/path/to/serviceAccountKey.json') # You can get this file from the Firebase console by going to Project Settings > Service Accounts > Generate New Private Key.
+cred = credentials.Certificate(r'api\v1\db\firebase\config.json') # You can get this file from the Firebase console by going to Project Settings > Service Accounts > Generate New Private Key.
 # Initialize the Firebase Admin and provide the credentials as an argument.
 firebase_admin.initialize_app(cred)
 # Create a database client. db variable now represents the Firestore database.
