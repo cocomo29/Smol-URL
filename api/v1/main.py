@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from Shortner.main import createTempObject
 from .firebase.db import saveUrlToFirestore, getUrlFromFirestore
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Any,Dict
 
 app = FastAPI()
 app.add_middleware(
@@ -14,13 +15,15 @@ app.add_middleware(
 )
 # Define the `root` route.
 @app.get("/")
-def root():
-    return {"message": "Hello World"}
-
+async def root():
+    # Return the index.html template.
+    return {
+        "hwllo":"wprd"
+    }
 
 # Define the `shorten` route.
 @app.post("/shorten")
-def shorten( url: str = Form(...)):
+def shorten( url:  Dict[Any, Any]):
     # Create a temporary object.
     tempObj = createTempObject(url)
     # Save the short URL and long URL to Firestore.
@@ -31,14 +34,16 @@ def shorten( url: str = Form(...)):
 
 # Define the `redirectToUrl` route.
 @app.get("/{shortUrl}")
-def redirectToUrl(shortUrl: str):
+async def redirectToUrl(request: Request, shortUrl: str):
     # Get the long URL from Firestore.
     longUrl = getUrlFromFirestore(shortUrl)
     # If the long URL is None, return an error message.
     if longUrl is None:
         return {
-            "message": "The short URL doesn't exist."
+            "meesage":"eror"
         }
     # Otherwise, redirect to the long URL.
     else:
-        return RedirectResponse(url=longUrl)
+        return {
+            "url":longUrl
+        }
