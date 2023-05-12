@@ -11,7 +11,7 @@ pip install -r requirements.txt
 
 # API Usage
 ```bash
-uvicorn api.v1.main::app --reload
+uvicorn api.v1.main:app --reload
 ```
 
 # Frontend Usage

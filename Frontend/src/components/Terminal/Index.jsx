@@ -12,7 +12,7 @@ function Terminal() {
   const handleCommandSubmit = (event) => {
     event.preventDefault();
     if (command === 'help') {
-      setPrevCommands([...prevCommands, { command, output: 'pehly salad bhej' }]);
+      setPrevCommands([...prevCommands, { command, output: 'Usage: shortner -L [url]' }]);
     } else if (command === 'whoami') {
       setPrevCommands([...prevCommands, { command, output: 'I am a URL Shortener, made by @notwld and @cocomo with <3' }]);
     } else if (command === '' || command === 'clear') {
