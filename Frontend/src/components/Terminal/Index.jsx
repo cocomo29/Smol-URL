@@ -13,9 +13,11 @@ function Terminal() {
     event.preventDefault();
     if (command === 'help') {
       setPrevCommands([...prevCommands, { command, output: 'Usage: shortner -L [url]' }]);
+    } else if (command === '') {
+      setPrevCommands([...prevCommands, { command, output: '' }]);
     } else if (command === 'whoami') {
       setPrevCommands([...prevCommands, { command, output: 'I am a URL Shortener, made by @notwld and @cocomo with <3' }]);
-    } else if (command === '' || command === 'clear') {
+    } else if (command === 'clear') {
       setPrevCommands([]);
     } else if (command.startsWith('shortner -L')) {
       const getUrl = async () => {

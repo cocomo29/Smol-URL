@@ -44,6 +44,4 @@ async def redirectToUrl(request: Request, shortUrl: str):
         }
     # Otherwise, redirect to the long URL.
     else:
-        return {
-            "url":longUrl
-        }
+        return RedirectResponse(url=longUrl)
