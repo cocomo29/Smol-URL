@@ -51,6 +51,7 @@ function Terminal() {
     }
     setCommand('');
   };
+  
 
   return (
     <div className="terminal">
@@ -80,6 +81,13 @@ function Terminal() {
               value={command}
               onChange={handleCommandChange}
               autoFocus
+              onKeyUp={(event) => {
+                if (event.key === 'ArrowUp') {
+                  setCommand(prevCommands[prevCommands.length - 1].command);
+                }
+
+              }
+              }
             />
           </div>
         </form>
